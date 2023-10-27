@@ -1,0 +1,28 @@
+Problem:
+Let's design a Pastebin like web service, where users can store plain text. Users of the service will enter a piece of text and get a randomly generated URL to access it.
+
+Functional requirements:
+1. User must be able to submit text and receive a random URL for that text
+2. Random URL must be unique
+3. URL must be accessible to public
+4. URL expires after a default or custom duration
+5. User can pick a custom name for their random URL
+
+Non-functional requirements:
+1. Links must be unpredictable
+2. Server and database must be highly available and reliable
+3. URL access should be low-latency
+
+Assumptions:
+1. Read-heavy
+2. Medium-sized storage for many small snippets of texts
+
+API:
+
+Database:
+- Type:
+- Why:
+
+Scalability:
+
+Tradeoffs:

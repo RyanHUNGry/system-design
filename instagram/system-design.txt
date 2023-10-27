@@ -1,0 +1,61 @@
+Problem:
+Let's design a photo-sharing service like Instagram, where users can upload photos to share them with other users.
+
+Functional requirements:
+1. Users should be able to upload/download/view photos.
+2. Users can perform searches based on photo/video titles.
+3. Users can follow other users.
+4. The system should generate and display a user's News Feed consisting of top photos from all the people the user follows.
+
+Non-functional requirements:
+1. Our service needs to be highly available.
+2. The acceptable latency of the system is 200ms for News Feed generation.
+3. Consistency can take a hit (in the interest of availability) if a user doesn’t see a photo for a while; it should be fine.
+4. The system should be highly reliable; any uploaded photo or video should never be lost.
+
+Assumptions:
+1. Read-heavy
+2. Users can upload an unlimited amount of photos
+3. High traffic
+
+Database:
+- Type: NoSQL
+- Why: High traffic requires a scalable solution like NoSQL to gaurantee availability and resiliency, especially since we are not concerned with data consistency and transactions.
+
+User {
+    userID: PK
+    name: String
+    password: String
+    email: String
+}
+
+Photo {
+    userID: FK User.userID
+    PhotoID: PK
+    PhotoPath: String
+    UploadDate: Datetime
+}
+
+Followers {
+    userID, FollowID: PK
+    userID: FK User.userID
+    FollowID: FK User.userID
+}
+
+Components:
+
+S3 for image storage.
+
+NoSQL replicas with load balancer between application servers and database nodes.
+
+Application server for reads.
+
+Application server for writes.
+
+API gateway as proxy to forward requests to correct application server.
+
+Load balancer between client and API gateway.
+
+Tradeoffs:
+
+Consistency is lost due to focus on availability and reliability.

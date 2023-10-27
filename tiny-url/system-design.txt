@@ -1,0 +1,74 @@
+Problem:
+Let's design a URL shortening service like TinyURL. This service will provide short aliases redirecting to long URLs. 
+
+Requirements:
+1. User must be able to submit a long URL and retrieve a short URL
+2. User must be able to replace previous short URL destination
+3. Short URL link must timeout after a period of time (15 days)
+4. Multiple users can shorten the same long URL, so short URL must be unique yet random
+5. Shortened URLs should be accessible to everyone
+
+Assumptions:
+1. Read-heavy
+2. Medium storage of URLs
+3. Cache frequently used URLs
+
+API:
+
+POST /url
+
+request = {
+    longURL: String
+}
+
+response = {
+    shortURL: String
+}
+
+Throw error: Not a valid URL
+Notes: Convert longURL to shortURL by generating a unique ID
+
+GET /url
+
+request = {
+    shortURL: String
+}
+
+response = {
+    longURL: String
+}
+
+Throw error: Cannot find shortURL, shortURL expired
+Notes:
+
+DELETE /url
+
+request = {
+    shortURL: String
+}
+
+response = {
+    longURL: String
+}
+
+Throw error: Cannot find shortURL
+Notes: Internal use to remove URL from database if expired
+
+Database:
+
+Assume more reads than writes, so SQL can be used and scaled using read-replicas.
+
+url
+{
+    url_id: PK Integer
+    short_url: String
+    long_url: String
+    time_stamp: Datetime
+}
+
+Architecture:
+
+1. Horizontally scale application server to handle more requests.
+2. Install load balancer between client and application server nodes.
+3. Create read-replicas of database to speed up database reads.
+4. Install load balancer between application server and database.
