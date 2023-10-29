@@ -1,0 +1,15 @@
+Problem:
+
+Functional requirements:
+
+Non-functional requirements:
+
+Assumptions:
+
+Database:
+- Type:
+- Why:
+
+Components:
+
+Tradeoffs:

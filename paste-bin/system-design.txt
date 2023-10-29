@@ -19,6 +19,34 @@ Assumptions:
 
 API:
 
+POST /url
+
+request = {
+    text: String
+    name: Optional | String
+    expireDate: Optional | Datetime
+}
+
+response = {
+    shortURL: String
+}
+
+Throw error: Serverside failure or not a string
+Notes: Creates URL to pasted text
+
+DELETE /url
+
+request = {
+
+}
+
+response = {
+    text: String
+}
+
+Throw error: Serverside failure or invalid key
+Notes: Deletes URL to pasted text
+
 Database:
 - Type:
 - Why:

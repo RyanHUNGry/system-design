@@ -20,7 +20,7 @@ Assumptions:
 
 Database:
 - Type: NoSQL
-- Why: High traffic requires a scalable solution like NoSQL to gaurantee availability and resiliency, especially since we are not concerned with data consistency and transactions.
+- Why: High traffic requires a scalable solution like NoSQL to gaurantee availability and reliability, especially since we are not concerned with data consistency and transactions.
 
 User {
     userID: PK
@@ -34,6 +34,7 @@ Photo {
     PhotoID: PK
     PhotoPath: String
     UploadDate: Datetime
+    title: String
 }
 
 Followers {
@@ -48,9 +49,9 @@ S3 for image storage.
 
 NoSQL replicas with load balancer between application servers and database nodes.
 
-Application server for reads.
+Application server for image reads.
 
-Application server for writes.
+Application server for image writes.
 
 API gateway as proxy to forward requests to correct application server.
 

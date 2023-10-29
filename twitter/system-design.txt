@@ -1,0 +1,139 @@
+Problem:
+Let's design a Twitter-like social networking service. Users of the service will be able to post tweets, follow other people, and favorite tweets.
+
+Functional requirements:
+1. Users should be able to post new tweets.
+2. A user should be able to follow other users.
+3. Users should be able to mark tweets as favorites.
+4. The service should be able to create and display a user's timeline consisting of top tweets from all the people the user follows.
+5. Tweets can contain photos and videos.
+
+Non-functional requirements:
+1. Our service needs to be highly available.
+2. Acceptable latency of the system is 200ms for timeline generation.
+3. Consistency can take a hit (in the interest of availability); if a user doesn’t see a tweet for a while, it should be fine.
+
+Assumptions:
+1. Read-heavy.
+2. A top tweet is one that is most recent.
+
+Database:
+- Type: SQL.
+- Why: Even though a NoSQL solution is best for availability and reliability at the cost of data consistency, which is our requirements, the amount of relationships we have means SQL is much more suitable the data.
+
+User {
+    uid: PK
+    name: String
+    password: String
+    email: String
+}
+
+Indexes:
+
+Tweets {
+    content: String
+    mediaPath: Optional | String
+    uid: FK User.uid
+    tid: PK
+    creationDate: Datetime
+}
+
+Indexes: creationDate
+
+Followers {
+    uid, fid: PK
+    uid: FK User.uid
+    fid: FK User.uid
+}
+
+Indexes:
+
+Favorites {
+    uid, tid: PK
+    uid: FK User.uid
+    tid: FK Tweets.tid
+}
+
+Indexes:
+
+API:
+
+Public POST /login
+
+request = {
+    email: String
+    password: String
+}
+
+response 200 = {
+    JWT: String
+}
+
+Notes: Can be outsourced to third-party using OAuth. Use JWT authentication and store user ID in token. Assume similar logic for signup.
+Throw error: When credentials are invalid.
+
+Private POST /tweet
+
+request = {
+    content: String
+    media: Optional | File
+}
+
+response 201 = {
+
+}
+
+Notes:
+Throw error: When content is too large.
+
+Private POST /follow
+
+request = {
+    tid: String
+}
+
+response 201 = {
+
+}
+
+Notes:
+Throw error: When tweet ID does not exist.
+
+Private GET /timeline
+
+request = {
+
+}
+
+response 200 = [
+    {
+        content: String
+        media: Optional | File
+        creationDate: Datetime
+    }...
+]
+
+Notes: Uses continously-polling database.
+Throw error:
+
+Components:
+
+S3 for media storage.
+
+To speedup timeline querying, have a server that continously polls main database for incoming tweets. Then, create a separate database that stores the most recent tweet IDs of followers for each user. NoSQL database here because read-write heavy and we do not care much about consistency.
+
+Client.
+
+Horizontally scale application server and use a load balancer that checks for health of application server nodes.
+
+Some tweets might be frequently accessed by many people (maybe a celebrity). Use a distributed cache in between application server nodes and main database to cache frequently accessed tweets. LRU is a decent policy for this.
+
+Because read-heavy, create multiple read-replicas of SQL database for optimizing.
+
+Tradeoffs:
+
+NoSQL suits business needs the best, but the relationships we have calls for SQL.
+
+Using a distributed cache reduces data consistency at the benefit of low latency for retrieving tweets.
+
+Using a server that continuously updates the most recent tweet IDs of followeres for each user in a separate database reduces data consistency at the benefit of low latency for timeline generation.
