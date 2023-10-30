@@ -1,0 +1,103 @@
+PROBLEM DIFFERS SO TEMPLATE IGNORED
+
+Problem:
+There are a growing number of people experiencing feelings of loneliness or depression in
+major cities. A non-profit is attempting to solve this problem by providing a puppy rental
+service. The non-profit has built out a system for allowing users to sign up for the service, as
+well as infrastructure to humanely house and transport puppies. However, the non-profit has
+been having a lot of issues with making sure that the right people are getting puppies.
+
+The non-profit has reached out to Palantir to help them solve the allocation problem. The
+existing system has APIs for retrieving user/puppy information, and now you have to design
+and implement a system for satisfying user requests for puppies.
+
+Assumptions:
+1. System only contains APIs for user/puppy information so need to design a puppy reservation platform.
+2. High traffic due to deployment in multiple cities so scalability issues
+3. Requires high data consistency to ensure people get the right puppies
+4. Not gauranteed everyone will reserve when they hop on the platform, so more reads than writes
+5. Assume user/puppy information contains basic info like address
+6. Assume no payment, users only need to signup for puppies to receive. Also assume infrastructure such as transport is taken care of.
+7. Assume we have users, and also shelter who upload the puppies. Assume multiple shelters in multiple cities.
+
+Features for MVP:
+1. User should be able to reserve a puppy for a period of timeline
+2. User should be able to mark they returned the puppy or finished their reservation.
+3. Shelter should be able to upload puppy info to system.
+4. Small amount users might have not marked puppy as done, so need a way to purge reservations to free up more puppies.
+
+High-level overview:
+
+Client.
+
+API server. One for shelters and one for users.
+
+Database. 
+
+Database schemas:
+
+Assume we have user and puppy schemas.
+
+reservations {
+    uid PK
+    uid FK users.uid
+    pid FK puppies.pid UNIQUE
+    created Datetime
+    due Datetime
+}
+
+Because we want high consistency, I'm sticking with SQL even though the relationships are simple. We also assumed more reads than writes, and there are ways to work around that for SQL.
+
+API:
+
+Assume users are authenticated with JWT or authentication is outsourced to OAuth. We can extract userID via authentication strategies.
+
+PRIVATE POST /reservation
+
+request = {
+    pid: integer
+    duration: Datetime
+}
+
+response = {
+    pid: integer
+    due: Datetime
+}
+
+def createReservation(req):
+    uid = req.uid
+    pid = req.pid
+    duration = req.duration
+
+    try {
+        pid, due = model.createReservation(uid, pid, duration)
+        return pid, due
+    } catch {
+        throw error for server error, user already has a puppy, or puppy unavailable
+    }
+
+PRIVATE (for shelters) GET /reservations
+
+request = {
+
+}
+
+response = {
+    user_location: String
+    puppy_location: String
+    due: Datetime
+} but nothing is no valid reservation
+
+Scaling and Tradeoffs:
+
+1. Assume high traffic due to deployment in multiple cities
+2. Regional deployments of my application that are isolated from each other. Redirect user to closest deployment based on region they are in.
+3. SQL database for data consistency because we don't want one user to reserve a puppy that has already been reserved.
+4. Master-slave replicas to increase read performance at the cost of some write performance. But since writes are lower, we can get around this.
+5. Purge unremoved reservations in a reasonable interval because we don't want to query the database every time it changes for infrequent overdue dates. Have a service that periodically checks database when traffic is low, so it takes heartbeat.
+6. Horizontally scale stateless API servers, load balance
+
+Questions:
+1. Do we need to clarify the existing system they give us?
+2. Are shelters another user?
+3. Can we register new users and puppies? Are we allowed to modify existing API?
